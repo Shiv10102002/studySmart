@@ -1,4 +1,4 @@
-package com.shiv.studysmart.ui.theme
+package com.shiv.studysmart.presentation.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
