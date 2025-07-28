@@ -8,6 +8,7 @@ import com.shiv.studysmart.presentation.theme.gradient4
 import com.shiv.studysmart.presentation.theme.gradient5
 
 data class Subject(
+    val subjectId:Int,
     val name:String,
     val goalHours:Float,
     val colors:List<Color>

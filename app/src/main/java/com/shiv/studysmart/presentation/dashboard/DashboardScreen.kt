@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,18 +34,94 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.shiv.studysmart.R
+import com.shiv.studysmart.domain.model.Session
 import com.shiv.studysmart.domain.model.Subject
+import com.shiv.studysmart.domain.model.Task
 import com.shiv.studysmart.presentation.components.CountCard
 import com.shiv.studysmart.presentation.components.SubjectCard
+import com.shiv.studysmart.presentation.components.studySessionList
+import com.shiv.studysmart.presentation.components.tasksList
 
 @Composable
 fun DashboardScreen(){
     val subjects = listOf(
-        Subject(name = "English", goalHours = 10f, colors = Subject.subjectCardColors[0]),
-        Subject(name = "Physics", goalHours = 10f, colors = Subject.subjectCardColors[1]),
-        Subject(name = "Maths", goalHours = 10f, colors = Subject.subjectCardColors[2]),
-        Subject(name="Chemistry", goalHours = 10f, colors = Subject.subjectCardColors[3]),
-        Subject(name = "Fine Arts", goalHours = 10f, colors = Subject.subjectCardColors[4])
+        Subject(name = "English", goalHours = 10f, colors = Subject.subjectCardColors[0], subjectId = 0),
+        Subject(name = "Physics", goalHours = 10f, colors = Subject.subjectCardColors[1], subjectId = 1),
+        Subject(name = "Maths", goalHours = 10f, colors = Subject.subjectCardColors[2], subjectId = 2),
+        Subject(name="Chemistry", goalHours = 10f, colors = Subject.subjectCardColors[3], subjectId = 3),
+        Subject(name = "Fine Arts", goalHours = 10f, colors = Subject.subjectCardColors[4], subjectId = 4)
+    )
+
+    val tasks = listOf(
+        Task(title = "Prepare notes",
+            description = "",
+            priority = 1,
+            dueDate = 0L,
+            relatedSubject = "English",
+            isComplete = false,
+            taskId = 0,
+            taskSubjectId = 0
+        ),
+        Task(title = "Do Homeworks",
+            description = "",
+            priority = 0,
+            dueDate = 0L,
+            relatedSubject = "Math",
+            isComplete = true,
+            taskId = 1,
+            taskSubjectId = 2
+        ),
+        Task(title = "Prepare notes",
+            description = "",
+            priority = 1,
+            dueDate = 0L,
+            relatedSubject = "Chemistry",
+            isComplete = false,
+            taskId = 2,
+            taskSubjectId = 3
+        ),
+        Task(title = "Go Coaching",
+            description = "",
+            priority = 3,
+            dueDate = 0L,
+            relatedSubject = "English",
+            isComplete = false,
+            taskId = 3,
+            taskSubjectId = 0
+        ),
+    )
+
+    val sessions = listOf(
+        Session(
+            sessionSubjectId = 0,
+            relatedToSubject = "English",
+            date = 0L,
+            duration = 2,
+            sessionId = 0
+        ),
+        Session(
+            relatedToSubject = "English",
+            date = 0L,
+            duration = 2,
+            sessionId = 1,
+            sessionSubjectId = 0
+        ),
+        Session(
+            relatedToSubject = "Physics",
+            date = 0L,
+            duration = 2,
+            sessionId = 0,
+            sessionSubjectId = 1
+        ),
+        Session(
+            relatedToSubject = "Maths",
+            date = 0L,
+            duration = 2,
+            sessionId = 0,
+            sessionSubjectId = 2
+        ),
+
+
     )
 
     Scaffold(
@@ -66,6 +144,32 @@ fun DashboardScreen(){
                     subjectList = subjects
                 )
             }
+            item{
+                Button(
+                    onClick = {},
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 48.dp, vertical = 20.dp)
+                ) {
+                    Text(text = "Start Study Session")
+                }
+            }
+            tasksList(
+                sectionTitle = "UPCOMING TASKS",
+                emptyListTask = "You don't have any upcoming tasks.\n " + "Click the + button in subject screen to add new task",
+                tasks = tasks,
+                onCheckBoxClicked = {},
+                onTaskCardClicked = {}
+            )
+            item{
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            studySessionList(
+                sectionTitle = "UPCOMING SESSIONS",
+                emptyListText = "You don't have any upcoming sessions.\n " + "Click the + button in subject screen to add new session",
+                sessions = sessions,
+                onDeleteIconClick = {}
+            )
+
         }
 
     }
@@ -173,5 +277,4 @@ private fun DashboardScreenTopBar(){
 @Composable
 private fun DashboradPreview(){
    DashboardScreen()
-//    SubjectCardsSection()
 }
