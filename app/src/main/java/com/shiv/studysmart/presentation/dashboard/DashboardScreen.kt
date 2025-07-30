@@ -26,6 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,94 +39,44 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.shiv.studysmart.R
-import com.shiv.studysmart.domain.model.Session
 import com.shiv.studysmart.domain.model.Subject
-import com.shiv.studysmart.domain.model.Task
+import com.shiv.studysmart.presentation.components.AddSubjectDialog
 import com.shiv.studysmart.presentation.components.CountCard
+import com.shiv.studysmart.presentation.components.DeleteDialog
 import com.shiv.studysmart.presentation.components.SubjectCard
 import com.shiv.studysmart.presentation.components.studySessionList
 import com.shiv.studysmart.presentation.components.tasksList
+import com.shiv.studysmart.sessions
+import com.shiv.studysmart.subjects
+import com.shiv.studysmart.tasks
 
 @Composable
 fun DashboardScreen(){
-    val subjects = listOf(
-        Subject(name = "English", goalHours = 10f, colors = Subject.subjectCardColors[0], subjectId = 0),
-        Subject(name = "Physics", goalHours = 10f, colors = Subject.subjectCardColors[1], subjectId = 1),
-        Subject(name = "Maths", goalHours = 10f, colors = Subject.subjectCardColors[2], subjectId = 2),
-        Subject(name="Chemistry", goalHours = 10f, colors = Subject.subjectCardColors[3], subjectId = 3),
-        Subject(name = "Fine Arts", goalHours = 10f, colors = Subject.subjectCardColors[4], subjectId = 4)
+
+    var isDeleteSessionDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var isAddSubjectDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var subjectName by remember { mutableStateOf("") }
+    var goalHours by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(Subject.subjectCardColors.random()) }
+    AddSubjectDialog(
+        isOpen = isAddSubjectDialogOpen,
+        onDismissRequest = {isAddSubjectDialogOpen = false},
+        onConfirmButtonClick = {
+            isAddSubjectDialogOpen = false
+        },
+        selectColors = selectedColor,
+        onColorChange = {selectedColor = it},
+        subjectName = subjectName,
+        goalHours = goalHours,
+        onSubjectNameChange = {subjectName = it},
+        onGoalHoursChange = {goalHours = it}
     )
-
-    val tasks = listOf(
-        Task(title = "Prepare notes",
-            description = "",
-            priority = 1,
-            dueDate = 0L,
-            relatedSubject = "English",
-            isComplete = false,
-            taskId = 0,
-            taskSubjectId = 0
-        ),
-        Task(title = "Do Homeworks",
-            description = "",
-            priority = 0,
-            dueDate = 0L,
-            relatedSubject = "Math",
-            isComplete = true,
-            taskId = 1,
-            taskSubjectId = 2
-        ),
-        Task(title = "Prepare notes",
-            description = "",
-            priority = 1,
-            dueDate = 0L,
-            relatedSubject = "Chemistry",
-            isComplete = false,
-            taskId = 2,
-            taskSubjectId = 3
-        ),
-        Task(title = "Go Coaching",
-            description = "",
-            priority = 3,
-            dueDate = 0L,
-            relatedSubject = "English",
-            isComplete = false,
-            taskId = 3,
-            taskSubjectId = 0
-        ),
-    )
-
-    val sessions = listOf(
-        Session(
-            sessionSubjectId = 0,
-            relatedToSubject = "English",
-            date = 0L,
-            duration = 2,
-            sessionId = 0
-        ),
-        Session(
-            relatedToSubject = "English",
-            date = 0L,
-            duration = 2,
-            sessionId = 1,
-            sessionSubjectId = 0
-        ),
-        Session(
-            relatedToSubject = "Physics",
-            date = 0L,
-            duration = 2,
-            sessionId = 0,
-            sessionSubjectId = 1
-        ),
-        Session(
-            relatedToSubject = "Maths",
-            date = 0L,
-            duration = 2,
-            sessionId = 0,
-            sessionSubjectId = 2
-        ),
-
-
+    DeleteDialog(
+        isOpen = isDeleteSessionDialogOpen,
+        title = "Delete Session?",
+        bodyText = "Are you sure , you want to delete this session? your studied hours will be reduced by this session time. this action can not be undone",
+        onDismissRequest = {isDeleteSessionDialogOpen = false},
+        onConfirmButtonClick = {isDeleteSessionDialogOpen = false}
     )
 
     Scaffold(
@@ -141,7 +96,9 @@ fun DashboardScreen(){
             item{
                 SubjectCardsSection(
                     modifier = Modifier.fillMaxWidth(),
-                    subjectList = subjects
+                    subjectList = subjects,
+                    onAddIconClick = {isAddSubjectDialogOpen = true}
+
                 )
             }
             item{
@@ -167,7 +124,7 @@ fun DashboardScreen(){
                 sectionTitle = "UPCOMING SESSIONS",
                 emptyListText = "You don't have any upcoming sessions.\n " + "Click the + button in subject screen to add new session",
                 sessions = sessions,
-                onDeleteIconClick = {}
+                onDeleteIconClick = {isDeleteSessionDialogOpen = true}
             )
 
         }
@@ -206,6 +163,7 @@ private fun CountCardSection(
 
 @Composable
 private fun SubjectCardsSection(
+    onAddIconClick:()->Unit,
     modifier: Modifier,
     subjectList:List<Subject>,
     emptyListText:String = "you don't have any subjects.\n Click the + button t o add new subjects"
@@ -222,7 +180,7 @@ private fun SubjectCardsSection(
                 modifier = Modifier.padding(start = 12.dp)
             )
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { onAddIconClick() },
             ){
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -273,8 +231,3 @@ private fun DashboardScreenTopBar(){
     )
 }
 
-@Preview
-@Composable
-private fun DashboradPreview(){
-   DashboardScreen()
-}
