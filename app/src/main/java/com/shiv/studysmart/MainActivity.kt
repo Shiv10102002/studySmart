@@ -4,18 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.ramcosta.composedestinations.DestinationsNavHost
 import com.shiv.studysmart.domain.model.Session
 import com.shiv.studysmart.domain.model.Subject
 import com.shiv.studysmart.domain.model.Task
-import com.shiv.studysmart.presentation.dashboard.DashboardScreen
-import com.shiv.studysmart.presentation.subject.SubjectScreen
+import com.shiv.studysmart.presentation.NavGraphs
 import com.shiv.studysmart.presentation.theme.StudySmartTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,8 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             StudySmartTheme {
-                SubjectScreen()
-//                DashboardScreen()
+                DestinationsNavHost(navGraph = NavGraphs.root)
             }
         }
     }

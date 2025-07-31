@@ -43,18 +43,51 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.shiv.studysmart.domain.model.Subject
 import com.shiv.studysmart.presentation.components.AddSubjectDialog
 import com.shiv.studysmart.presentation.components.CountCard
 import com.shiv.studysmart.presentation.components.DeleteDialog
 import com.shiv.studysmart.presentation.components.studySessionList
 import com.shiv.studysmart.presentation.components.tasksList
+import com.shiv.studysmart.presentation.destinations.TaskScreenRouteDestination
+import com.shiv.studysmart.presentation.task.TaskScreenNavArgs
 import com.shiv.studysmart.sessions
 import com.shiv.studysmart.tasks
 
+
+data class SubjectScreenNavArgs( val subjectId :Int)
+
+
+
+@Destination(navArgsDelegate = SubjectScreenNavArgs::class)
+@Composable
+fun SubjectScreenRoute(
+    navigator: DestinationsNavigator
+){
+    SubjectScreen(
+        onBackButtonClick = {
+            navigator.navigateUp()
+        },
+        onAddTaskButtonClick = {
+             val navArg = TaskScreenNavArgs(taskId= null,subjectId = null)
+            navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
+        },
+        onTaskCardClick = {taskId->
+            val navArg = TaskScreenNavArgs(taskId = taskId,subjectId = null)
+            navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectScreen(){
+private fun SubjectScreen(
+    onBackButtonClick:()->Unit,
+    onAddTaskButtonClick:()->Unit,
+    onTaskCardClick:(Int?)->Unit
+){
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
     val isFABExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
@@ -87,7 +120,9 @@ fun SubjectScreen(){
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SubjectScreenTopBar(
-                onBackClick = {},
+                onBackClick = {
+                    onBackButtonClick()
+                },
                 onEditClick = {
                     isEditSubjectDialogOpen = true
                 },
@@ -100,7 +135,9 @@ fun SubjectScreen(){
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {},
+                onClick = {
+                    onAddTaskButtonClick()
+                },
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -128,7 +165,9 @@ fun SubjectScreen(){
                 emptyListTask = "You don't have any upcoming tasks.\n " + "Click the + button to add new task",
                 tasks = tasks,
                 onCheckBoxClicked = {},
-                onTaskCardClicked = {}
+                onTaskCardClicked = {
+                    onTaskCardClick(it)
+                }
             )
             item{
                 Spacer(modifier = Modifier.height(20.dp))
@@ -257,11 +296,4 @@ private fun SubjectScreenTopBar(
             }
         }
     )
-}
-
-
-@Preview
-@Composable
-fun SubjectScreenPreview(){
-    SubjectScreen()
 }

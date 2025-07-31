@@ -43,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.shiv.studysmart.presentation.components.DeleteDialog
 import com.shiv.studysmart.presentation.components.SubjectListBottomSheet
 import com.shiv.studysmart.presentation.components.TaskCheckBox
@@ -52,9 +54,28 @@ import com.shiv.studysmart.util.changeMillisToDateString
 import kotlinx.coroutines.launch
 import java.time.Instant
 
+data class TaskScreenNavArgs(
+    val taskId:Int?,
+    val subjectId:Int?
+)
+
+@Destination(navArgsDelegate = TaskScreenNavArgs::class)
+@Composable
+fun TaskScreenRoute(
+    navigator: DestinationsNavigator
+){
+    TaskScreen(
+        onBackButtonClick = {
+            navigator.navigateUp()
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen() {
+private fun TaskScreen(
+    onBackButtonClick : ()->Unit
+) {
     var isDeleteDialogOpen by rememberSaveable { mutableStateOf(false) }
     var isDatePickerDialogOpen by rememberSaveable { mutableStateOf(false) }
     var isBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -79,7 +100,7 @@ fun TaskScreen() {
         state = datePickerState,
         isOpen = isDatePickerDialogOpen,
         onDismissRequest = {
-            isDeleteDialogOpen = false
+            isDatePickerDialogOpen = false
         },
         onConfirmButtonClicked = {
           isDatePickerDialogOpen = false
@@ -101,7 +122,7 @@ fun TaskScreen() {
     )
     SubjectListBottomSheet(
         sheetState = sheetState,
-        isOpen = true,
+        isOpen = isBottomSheetOpen,
         subjects = listOf(),
         onSubjectClicked = {
             scope.launch {
@@ -124,7 +145,7 @@ fun TaskScreen() {
                 isTaskExist = true,
                 isCompleted = false,
                 checkBoxBorderColor = Color.Red,
-                onBackButtonClick = {},
+                onBackButtonClick = onBackButtonClick,
                 onDeleteButtonClick = {
                     isDeleteDialogOpen = true
                 },
