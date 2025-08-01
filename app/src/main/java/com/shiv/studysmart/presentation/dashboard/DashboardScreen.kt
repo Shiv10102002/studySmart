@@ -201,7 +201,7 @@ private fun CountCardSection(
 
 @Composable
 private fun SubjectCardsSection(
-    onSubjectCardClick:(Int)->Unit,
+    onSubjectCardClick:(Int?)->Unit,
     onAddIconClick:()->Unit,
     modifier: Modifier,
     subjectList:List<Subject>,
@@ -250,7 +250,9 @@ private fun SubjectCardsSection(
                     modifier = Modifier.size(150.dp),
                     subjectName = subject.name,
                     onClick = { onSubjectCardClick(subject.subjectId)},
-                    gradientColor = subject.colors
+                    gradientColor = subject.colors.map{
+                        Color(it)
+                    }
                 )
 
             }
