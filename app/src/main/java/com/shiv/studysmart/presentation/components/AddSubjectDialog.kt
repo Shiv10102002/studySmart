@@ -33,7 +33,6 @@ import com.shiv.studysmart.domain.model.Subject
 
 @Composable
 fun AddSubjectDialog(
-    modifier: Modifier = Modifier,
     isOpen:Boolean,
     onDismissRequest:()->Unit,
     onConfirmButtonClick:()->Unit,

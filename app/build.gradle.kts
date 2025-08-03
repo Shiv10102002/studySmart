@@ -40,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
@@ -58,6 +59,7 @@ dependencies {
     implementation(libs.androidx.material3)
     //dagger hilt
     val hilt = "2.56.2"
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("com.google.dagger:hilt-android:$hilt")
     ksp("com.google.dagger:hilt-android-compiler:$hilt")
 

@@ -18,6 +18,4 @@ abstract  class AppDatabase :RoomDatabase() {
     abstract fun taskDao():TaskDao
     abstract fun sessionDao():SessionDao
 
-
-
 }

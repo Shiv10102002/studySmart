@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.shiv.studysmart.R
 
@@ -26,7 +27,7 @@ fun SubjectCard(
     gradientColor: List<Color>
 ){
     Box(
-        modifier = Modifier.size(150.dp)
+        modifier = modifier.size(150.dp)
             .clickable { onClick() }
             .background(
                 brush = Brush.verticalGradient(
@@ -46,7 +47,9 @@ fun SubjectCard(
              Text(
                  text = subjectName,
                  style = MaterialTheme.typography.headlineMedium,
-                 color = Color.White
+                 color = Color.White,
+                 maxLines = 1,
+                 overflow = TextOverflow.Ellipsis
              )
          }
     }

@@ -13,7 +13,7 @@ interface SessionRepository {
 
     fun getRecentFiveSessions():Flow<List<Session>>
 
-    fun getRecentSessionsForSubject(subjectId:Int):Flow<List<Session>>
+    fun getRecentTenSessionsForSubject(subjectId:Int):Flow<List<Session>>
 
     fun getTotalSessionsDuration():Flow<Long>
 

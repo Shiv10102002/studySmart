@@ -24,8 +24,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +40,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.shiv.studysmart.R
+import com.shiv.studysmart.domain.model.Session
 import com.shiv.studysmart.domain.model.Subject
+import com.shiv.studysmart.domain.model.Task
 import com.shiv.studysmart.presentation.components.AddSubjectDialog
 import com.shiv.studysmart.presentation.components.CountCard
 import com.shiv.studysmart.presentation.components.DeleteDialog
@@ -55,15 +63,28 @@ import com.shiv.studysmart.presentation.task.TaskScreenNavArgs
 import com.shiv.studysmart.sessions
 import com.shiv.studysmart.subjects
 import com.shiv.studysmart.tasks
+import com.shiv.studysmart.util.SnackBarEvent
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 
-
-
-@Destination(start = true)
+@RootNavGraph(start = true)
+@Destination
 @Composable
 fun DashboardScreenRoute(
     navigator: DestinationsNavigator
 ){
+
+    val viewModel:DashboardViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val task by viewModel.tasks.collectAsStateWithLifecycle()
+    val recentSession by viewModel.recentSessions.collectAsStateWithLifecycle()
+
     DashboardScreen(
+        snackBarEvent = viewModel.snackBarEventFlow,
+        tasks = task,
+        recentSessions = recentSession,
+        onEvent = viewModel::onEvent,
+        state = state,
         onSubjectCardClick = {subjectId->
             subjectId?.let{
                 val navArg = SubjectScreenNavArgs(subjectId = subjectId)
@@ -85,6 +106,11 @@ fun DashboardScreenRoute(
 
 @Composable
 private fun DashboardScreen(
+    snackBarEvent: SharedFlow<SnackBarEvent>,
+    tasks:List<Task>,
+    recentSessions:List<Session>,
+    onEvent:(DashboardEvent)->Unit,
+    state:DashboardState,
     onSubjectCardClick:(Int?)->Unit,
     onTaskCardClick:(Int?)->Unit,
     onStartSessionButtonClick:()->Unit
@@ -92,31 +118,56 @@ private fun DashboardScreen(
 
     var isDeleteSessionDialogOpen by rememberSaveable { mutableStateOf(false) }
     var isAddSubjectDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var subjectName by remember { mutableStateOf("") }
-    var goalHours by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(Subject.subjectCardColors.random()) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(key1 = true) {
+        snackBarEvent.collectLatest { event ->
+            when (event) {
+                is SnackBarEvent.ShowSnackBar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = event.duration
+                    )
+                }
+
+                SnackBarEvent.NavigateUp -> {}
+            }
+        }
+    }
     AddSubjectDialog(
         isOpen = isAddSubjectDialogOpen,
         onDismissRequest = {isAddSubjectDialogOpen = false},
         onConfirmButtonClick = {
+            onEvent(DashboardEvent.SaveSubject)
             isAddSubjectDialogOpen = false
         },
-        selectColors = selectedColor,
-        onColorChange = {selectedColor = it},
-        subjectName = subjectName,
-        goalHours = goalHours,
-        onSubjectNameChange = {subjectName = it},
-        onGoalHoursChange = {goalHours = it}
+        selectColors = state.subjectCardColors,
+        onColorChange = {
+            onEvent(DashboardEvent.OnSubjectCardColorChange(it))
+        },
+        subjectName = state.subjectName,
+        goalHours = state.goalStudyHours,
+        onSubjectNameChange = {
+            onEvent(DashboardEvent.OnSubjectNameChange(it))
+        },
+        onGoalHoursChange = {
+            onEvent(DashboardEvent.OnGoalStudyHoursChange(it))
+        }
     )
     DeleteDialog(
         isOpen = isDeleteSessionDialogOpen,
         title = "Delete Session?",
         bodyText = "Are you sure , you want to delete this session? your studied hours will be reduced by this session time. this action can not be undone",
         onDismissRequest = {isDeleteSessionDialogOpen = false},
-        onConfirmButtonClick = {isDeleteSessionDialogOpen = false}
+        onConfirmButtonClick = {
+            onEvent(DashboardEvent.DeleteSession)
+            isDeleteSessionDialogOpen = false}
     )
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar ={ DashboardScreenTopBar() }
     ) {paddingValues ->
         LazyColumn(
@@ -125,15 +176,15 @@ private fun DashboardScreen(
             item{
                 CountCardSection(
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
-                    studiedHours = "10",
-                    goalStudyHours = "15",
-                    subjectCount = "5"
+                    studiedHours = state.goalStudyHours,
+                    goalStudyHours = state.totalGoalStudyHours.toString(),
+                    subjectCount = state.totalSubjectCount
                 )
             }
             item{
                 SubjectCardsSection(
                     modifier = Modifier.fillMaxWidth(),
-                    subjectList = subjects,
+                    subjectList = state.subjects,
                     onAddIconClick = {isAddSubjectDialogOpen = true},
                     onSubjectCardClick = onSubjectCardClick
 
@@ -152,17 +203,21 @@ private fun DashboardScreen(
                 sectionTitle = "UPCOMING TASKS",
                 emptyListTask = "You don't have any upcoming tasks.\n " + "Click the + button in subject screen to add new task",
                 tasks = tasks,
-                onCheckBoxClicked = {},
+                onCheckBoxClicked = {
+                    onEvent(DashboardEvent.OnTaskIsCompleteChange(it))
+                },
                 onTaskCardClicked = onTaskCardClick
             )
             item{
                 Spacer(modifier = Modifier.height(12.dp))
             }
             studySessionList(
-                sectionTitle = "UPCOMING SESSIONS",
-                emptyListText = "You don't have any upcoming sessions.\n " + "Click the + button in subject screen to add new session",
-                sessions = sessions,
-                onDeleteIconClick = {isDeleteSessionDialogOpen = true}
+                sectionTitle = "RECENT STUDY SESSIONS",
+                emptyListText = "You don't have any recent sessions.\n " + "Start a study session to begin recording your progress",
+                sessions = recentSessions,
+                onDeleteIconClick = {
+                    onEvent(DashboardEvent.OnDeleteSessionButtonClick(it))
+                    isDeleteSessionDialogOpen = true}
             )
 
         }
@@ -173,7 +228,7 @@ private fun DashboardScreen(
 @Composable
 private fun CountCardSection(
     modifier: Modifier = Modifier,
-    subjectCount:String,
+    subjectCount:Int,
     studiedHours:String,
     goalStudyHours:String
 
@@ -182,7 +237,7 @@ private fun CountCardSection(
         CountCard(
             modifier = Modifier.weight(1f),
             headingText = "Subject Count",
-            count = subjectCount
+            count = "$subjectCount"
         )
         Spacer(modifier = Modifier.width(10.dp))
         CountCard(
@@ -219,7 +274,7 @@ private fun SubjectCardsSection(
                 modifier = Modifier.padding(start = 12.dp)
             )
             IconButton(
-                onClick = { onAddIconClick() },
+                onClick = onAddIconClick
             ){
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -247,7 +302,6 @@ private fun SubjectCardsSection(
         ) {
             items(subjectList){subject->
                 SubjectCard(
-                    modifier = Modifier.size(150.dp),
                     subjectName = subject.name,
                     onClick = { onSubjectCardClick(subject.subjectId)},
                     gradientColor = subject.colors.map{
