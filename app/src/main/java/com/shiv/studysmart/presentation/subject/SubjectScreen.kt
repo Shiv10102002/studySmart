@@ -85,7 +85,7 @@ fun SubjectScreenRoute(
             navigator.navigateUp()
         },
         onAddTaskButtonClick = {
-             val navArg = TaskScreenNavArgs(taskId= null,subjectId = null)
+             val navArg = TaskScreenNavArgs(taskId= null,subjectId = state.currentSubjectId)
             navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
         },
         onTaskCardClick = {taskId->
@@ -210,8 +210,8 @@ private fun SubjectScreen(
             item{
                 SubjectOverViewSection(
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
-                    studiedHours = state.goalStudyHours,
-                    goalHours = state.studiedHours.toString(),
+                    studiedHours = state.studiedHours.toString(),
+                    goalHours = state.goalStudyHours,
                     progress = state.progress
                 )
             }
@@ -279,7 +279,7 @@ private fun SubjectOverViewSection(
         Spacer(modifier = Modifier.width(10.dp))
         CountCard(
             modifier = Modifier.weight(1f),
-            headingText = "Study Hours",
+            headingText = "Studied Hours",
             count = studiedHours
         )
         Spacer(modifier = Modifier.width(10.dp))

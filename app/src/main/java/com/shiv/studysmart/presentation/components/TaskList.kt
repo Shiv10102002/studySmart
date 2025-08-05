@@ -28,12 +28,13 @@ import androidx.compose.ui.unit.dp
 import com.shiv.studysmart.R
 import com.shiv.studysmart.domain.model.Task
 import com.shiv.studysmart.util.Priority
+import com.shiv.studysmart.util.changeMillisToDateString
 
 fun LazyListScope.tasksList(
     sectionTitle:String,
     tasks:List<Task>,
     emptyListTask:String,
-    onTaskCardClicked:(Int)->Unit,
+    onTaskCardClicked:(Int?)->Unit,
     onCheckBoxClicked:(Task)->Unit
 ){
     item {
@@ -109,7 +110,7 @@ private fun TaskCard(
                )
                Spacer(modifier = Modifier.height(4.dp))
                Text(
-                   text = "${task.dueDate}",
+                   text = task.dueDate.changeMillisToDateString(),
                    style = MaterialTheme.typography.bodySmall
                )
            }

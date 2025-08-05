@@ -11,6 +11,7 @@ import javax.inject.Inject
 class TaskRepositoryImpl @Inject constructor(
     private val taskDao: TaskDao
 ): TaskRepository {
+
     override suspend fun upsertTask(task: Task) {
        taskDao.upsertTask(task)
     }

@@ -111,9 +111,15 @@ class DashboardViewModel @Inject constructor(
                 taskRepository.upsertTask(
                     task = task.copy(isComplete = !task.isComplete)
                 )
-                _snackBarEventFlow.emit(
-                    SnackBarEvent.ShowSnackBar(message = "Saved in Completed task.")
-                )
+                if(task.isComplete){
+                    _snackBarEventFlow.emit(
+                        SnackBarEvent.ShowSnackBar(message = "Saved in Upcoming task.")
+                    )
+                }else{
+                    _snackBarEventFlow.emit(
+                        SnackBarEvent.ShowSnackBar(message = "Saved in completed task.")
+                    )
+                }
             }catch (e:Exception){
                 _snackBarEventFlow.emit(
                     SnackBarEvent.ShowSnackBar(
